@@ -2,47 +2,96 @@
 
 var fs     = require('fs'),
     path   = require('path'),
-    _      = require('underscore'),
+    fst    = require('fs-tools'),
     handlebars = require('handlebars'),
-    parser = require('github-flavored-markdown');
+    gfm    = require('github-flavored-markdown');
 
 // Supported file extensions
-var SUPPORTED = [
-    'markdown',
-    'mdown',
-    'md'
-];
+var SUPPORTED = [ 'markdown', 'mdown', 'md' ];
 
-/**
- * Check if a file is supported
- * @param {String} file
- * @return {Boolean}
- */
-function isSupported(file) {
-    var extension = path.extname(file).substr(1);
-    return SUPPORTED.indexOf(extension) >= 0;
+/** Chapter ==================================================================================== */
+
+function Chapter(source) {
+    if (!fs.existsSync(source)) {
+        throw new Error('Source "' + source + '" does not exist.');
+    }
+    else if (!fs.statSync(source).isFile()) {
+        throw new Error('Source "' + source + '" is not a file.');
+    }
+
+    this.autoTitle = true;
+
+    this.path = source;
+    this.filename = path.basename(source);
+    this.target = stripExtension(this.filename) + '.html';
+
+    this._content = null;
+    this._parsed  = null;
+    this._title   = null;
+}
+
+Chapter.prototype.content = function(noCache) {
+    noCache = (isBoolean(noCache)) ? noCache : false;
+
+    if (noCache || this._content === null) {
+        this._content = fs.readFileSync(this.path, 'utf-8');
+    }
+
+    return this._content;
 };
+
+Chapter.prototype.parse = function(noCache) {
+    noCache = (isBoolean(noCache)) ? noCache : false;
+
+    if (noCache || this._parsed === null) {
+        this._parsed = gfm.parse(this.content(noCache));
+    }
+
+    return this._parsed;
+};
+
+Chapter.prototype.title = function() {
+
+    function filenameTitle(filename) {
+        var title = stripExtension(filename);
+
+        // Strip of leading digits
+        var matches = /^([0-9]*\-)/.exec(title);
+        if (matches) {
+            title = title.substring(matches[1].length);
+        }
+
+        return title;
+    }
+
+    if (this.autoTitle) {
+        // Try to find the first available title
+        var content = this.content();
+        var matches = content.match(/#*\s+([^\n]+)/);
+
+        this._title = (matches) ? matches[1] : filenameTitle(this.filename);
+    }
+    else {
+        this._filename = filenameTitle(this.filename);
+    }
+
+    return this._title;
+};
+
+/** Base functions ============================================================================= */
 
 /**
  * Gather chapters from a source directory.
  * @param {String} source
  * @return {Array}
  */
-function gather(source) {
+function gather(source, options) {
     // Find all chapters
     var chapters = fs.readdirSync(source);
 
     // Create complete file list
-    chapters = chapters.filter(isSupported).map(function(fileName) {
-        var fullPath = path.join(source, fileName);
-        var content  = fs.readFileSync(fullPath, 'utf-8');
-        return {
-            file:    fileName,
-            path:    fullPath,
-            content: content,
-            parsed:  parser.parse(content),
-            target:  fileName.substring(0, (fileName.length - path.extname(fileName).length)) + '.html'
-        }
+    chapters = chapters.filter(isSupported).map(function(filename) {
+        return new Chapter(path.join(source, filename));
     });
 
     return chapters;
@@ -52,11 +101,10 @@ function gather(source) {
  * Render a source to a destination
  * @param {Array} chapters
  */
-function render(chapters) {
+function render(chapters, options) {
     // Build TOC
     var toc = chapters.map(function(chapter) {
-        var filename = chapter.target.substring(0, chapter.target.length - 5);
-        return [filename, chapter.target];
+        return [chapter.title(), chapter.target];
     });
 
     // Load template
@@ -68,7 +116,7 @@ function render(chapters) {
         chapter.rendered = compiled({
             toc:     toc,
             chapter: chapter,
-            content: chapter.parsed
+            content: gfm.parse(chapter.content())
         });
     });
 
@@ -81,6 +129,10 @@ function render(chapters) {
  * @param {String} destination
  */
 function write(chapters, destination) {
+    if (fs.existsSync(destination) && fs.statSync(destination).isDirectory()) {
+        fst.removeSync(destination);
+    }
+
     // Create destination
     fs.mkdirSync(destination);
 
@@ -90,8 +142,8 @@ function write(chapters, destination) {
     });
 }
 
-function serve(source, opts) {
-    opts = opts || { port: 5678 };
+function serve(source, options) {
+    options = options || { address: 'localhost:5678' };
 
     // @TODO Create a watch on the chapter directory
     var chapters = render(gather(source));
@@ -128,8 +180,14 @@ function serve(source, opts) {
 
     }
 
+    // Parse the address
+    var address = (isObject(options.address)) ? options.address : parseAddress(options.address);
+
     // Create and start the server
-    var server = require('http').createServer(handleRequest).listen(opts.port);
+    var server = require('http')
+        .createServer(handleRequest)
+        .listen(address.port, address.host);
+    console.log('Server listening on ' + address.host + ':' + address.port);
 }
 
 /**
@@ -152,24 +210,46 @@ function cli() {
             'describe': 'Template directory containing template and style files',
             'default': '_template',
         })
-        .options('adress', {
+        .options('address', {
             'alias':    'a',
             'describe': 'The address to serve the chapters on',
             'default':  'localhost:5678'
         })
         .argv;
 
+    // Find the source directory
+    var source = path.resolve(args['source']);
+    if (!fs.existsSync(source)) {
+        throw new Error('Source directory "' + source + '" does not exist.');
+    }
+
+    // Find the templates directory
+    var template = path.join(source, args.template);
+    if (!fs.existsSync(template) || !fs.statSync(template).isDirectory()) {
+        // Use default template
+        template = path.join(__dirname, '_template');
+    }
+
+    // Build options
+    var options = {
+        address:  parseAddress(args['address']),
+        template: template
+    }
+
+
     if (args._.length < 1) {
         // Serve the files from a webserver
-        serve(args['s']);
+        serve(source, options);
     }
     else {
         // Write to destination
-        var chapters = gather(args['s']);
-        chapters = render(chapters, args['t']);
+        var chapters = gather(source);
+        chapters = render(chapters, options);
         write(chapters, args._[0]);
     }
 }
+
+/** Exports ==================================================================================== */
 
 // our awesome export products
 module.exports = {
@@ -178,7 +258,47 @@ module.exports = {
     write:  write
 };
 
+/** Utilities ================================================================================== */
+
+/**
+ * Check if a file is supported
+ * @param {String} file
+ * @return {Boolean}
+ */
+function isSupported(file) {
+    var extension = path.extname(file).substr(1);
+    return SUPPORTED.indexOf(extension) >= 0;
+};
+
+function stripExtension(p) {
+    return p.substring(0, p.length - path.extname(p).length);
+}
+
+function parseAddress(address) {
+    var split = (String(address)).split(':', 2);
+
+    var address = {
+        port: split.pop(),
+        host: split.pop() || '127.0.0.1'
+    };
+
+    if (address.host == 'localhost') {
+        address.host = '127.0.0.1';
+    }
+
+    return address;
+}
+
+function isObject(obj) {
+    return obj == Object(obj);
+}
+function isBoolean(val) {
+    return typeof(val) == 'boolean';
+}
+
+/** RUN ======================================================================================== */
+
 // Check if this is the main module being run
-if (module.filename === __filename) {
+if (module.filename == __filename) {
     cli();
 }

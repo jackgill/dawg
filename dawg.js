@@ -4,7 +4,7 @@ var fs     = require('fs'),
     path   = require('path'),
     _      = require('underscore'),
     handlebars = require('handlebars'),
-    gfm    = require('github-flavored-markdown');
+    marked = require('marked');
 
 // Supported file extensions
 var SUPPORTED = [ 'markdown', 'mdown', 'md' ];
@@ -107,7 +107,7 @@ function render(chapters, template) {
     chapters.forEach(function(chapter) {
         rendered[chapter.filename] = template({
             chapter: chapter,
-            content: gfm.parse(chapter.content())
+            content: marked(chapter.content())
         });
     });
 

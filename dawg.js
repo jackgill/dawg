@@ -259,7 +259,7 @@ function cli() {
         })
         .options('template', {
             'alias':   't',
-            'describe': 'Template directory name',
+            'describe': 'Template path',
             'default': 'template.html',
         })
         .options('address', {
@@ -268,6 +268,11 @@ function cli() {
             'default':  'localhost:5678'
         })
         .argv;
+
+    if (args['help']) {
+        cli.showHelp(console.log);
+        process.exit(0);
+    }
 
     // Find the source directory
     var source = path.resolve(args['source']);

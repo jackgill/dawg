@@ -285,7 +285,7 @@ function cli() {
     }
     if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
         // Use default template
-        template = path.join(__dirname, 'template.html');
+        template = TEMPLATE;
     }
 
     // Build options

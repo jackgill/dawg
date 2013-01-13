@@ -70,7 +70,7 @@ Chapter.prototype.title = function() {
     return this._title;
 };
 
-/** Base functions ============================================================================= */
+/** Public functions =========================================================================== */
 
 /**
  * Gather chapters from a source directory.
@@ -95,11 +95,12 @@ function gather(source, options) {
  * @param {String} template     The path to the template file
  */
 function render(chapters, template) {
-    // Compile the template
-    template = compileTemplate(template, chapters);
+    // Register chapter template helpers. This needs to be done everytime chapters
+    // are rendered because the list might have changed since the last render.
+    registerChapterHelpers(chapters);
 
-    // Register chapter template helpers
-    //registerHelpers(chapter);
+    // Compile the template
+    template = compileTemplate(template);
 
     // Render each chapter
     var rendered = {};
@@ -114,83 +115,35 @@ function render(chapters, template) {
 }
 
 /**
- * Compile a template from a file and a list of chapters. Returns a function that can be used
- * to render an HTML page with a context.
- * @param {String} template
- * @return {Function}
- */
-function compileTemplate(template, chapters) {
-    // Check if the template exists
-    if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
-        // Use default template
-        template = TEMPLATE;
-    }
-
-    // Get the contents of the template
-    var content = fs.readFileSync(template, 'utf-8');
-
-    // Register handlebars helpers
-    handlebars.registerHelper('listChapters', function(title) {
-        var html = [];
-        if (title) {
-            html.push('<h1>' + title + '</h1>');
-        }
-        html.push('<ol class="chapters">');
-        chapters.forEach(function(chapter) {
-            var target = stripExtension(chapter.filename) + '.html';
-            html.push('<li><a href="' + target + '">' + chapter.title() + '</a></li>');
-        });
-        html.push('</ol>');
-
-        return html.join('\n');
-    });
-
-    handlebars.registerHelper('listTOC', function(chapter) {
-        var html = '<ul class="toc"></ul>';
-
-        return html;
-    });
-
-    // Compile the template using handlebars
-    return handlebars.compile(content);
-}
-
-/**
- * Write chapters to a destination path
- * @param {Array} chapters
- * @param {String} destination
- */
-function write(chapters, destination) {
-    if (fs.existsSync(destination) && fs.statSync(destination).isDirectory()) {
-        remove(destination);
-    }
-
-    // Create destination
-    fs.mkdirSync(destination);
-
-    // Write each chapter
-    chapters.forEach(function(chapter) {
-        fs.writeFileSync(path.join(destination, chapter.target), chapter.rendered);
-    });
-}
-
-/**
  * Convert a source directory to a destination directory.
  * @param {String} source
  * @param {String} destination
  * @param {Object} options
  */
 function convert(source, destination, options) {
+    // Check if the destination directory exists, and empty it
+    if (fs.existsSync(destination) && fs.statSync(destination).isDirectory()) {
+        remove(destination);
+    }
+
+    // Create destination directory
+    fs.mkdirSync(destination);
+
     // Gather chapters
     var chapters = gather(source);
 
     // Render each chapter
-    chapters = render(chapters, options.template);
+    var rendered = render(chapters, options.template);
 
-    // Write out the chapters
-    write(chapters, destination);
+    // Write out the rendered chapters
+    for (var original in rendered) {
+        if (rendered.hasOwnProperty(original)) {
+            var content = rendered[original];
+            var target  = stripExtension(original) + '.html';
+            fs.writeFileSync(path.join(destination, target), content);
+        }
+    }
 }
-
 
 /**
  * Serve chapters from a source directory through an HTTP server
@@ -249,6 +202,18 @@ function serve(source, options) {
 
     console.log('Server listening on ' + address.host + ':' + address.port);
 }
+
+/** Exports ==================================================================================== */
+
+// our awesome export products
+module.exports = {
+    gather:  gather,
+    render:  render,
+    serve:   serve,
+    convert: convert
+};
+
+/** CLI ======================================================================================== */
 
 /**
  * CLI runner
@@ -312,16 +277,63 @@ function cli() {
     }
 }
 
-/** Exports ==================================================================================== */
-
-// our awesome export products
-module.exports = {
-    gather:  gather,
-    render:  render,
-    convert: convert
-};
+// Check if this is the main module being run
+if (module.filename == __filename) {
+    cli();
+}
 
 /** Utilities ================================================================================== */
+
+/**
+ * Compile a template from a file and a list of chapters. Returns a function that can be used
+ * to render an HTML page with a context.
+ * @param {String} template
+ * @return {Function}
+ */
+function compileTemplate(template, chapters) {
+    // Check if the template exists
+    if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
+        // Use default template
+        template = TEMPLATE;
+    }
+
+    // Get the contents of the template
+    var content = fs.readFileSync(template, 'utf-8');
+
+    // Compile the template using handlebars
+    return handlebars.compile(content);
+}
+
+/**
+ * Register a set of template helpers for working with chapters. These helpers need an active
+ * list chapters to work of of.
+ * @param {Array} chapters
+ */
+function registerChapterHelpers(chapters) {
+    // Chapter index helper
+    handlebars.registerHelper('listChapters', function(title) {
+        var html = [];
+        if (title) {
+            html.push('<h1>' + title + '</h1>');
+        }
+        html.push('<ol class="chapters">');
+        chapters.forEach(function(chapter) {
+            var target = stripExtension(chapter.filename) + '.html';
+            html.push('<li><a href="' + target + '">' + chapter.title() + '</a></li>');
+        });
+        html.push('</ol>');
+
+        return html.join('\n');
+    });
+
+    // Chapter Table of Contents helper
+    handlebars.registerHelper('listTOC', function(chapter) {
+        var html = '<ul class="toc"></ul>';
+
+        return html;
+    });
+}
+
 
 /**
  * Check if a file is supported
@@ -404,8 +416,3 @@ function isBoolean(val) {
 }
 
 /** RUN ======================================================================================== */
-
-// Check if this is the main module being run
-if (module.filename == __filename) {
-    cli();
-}

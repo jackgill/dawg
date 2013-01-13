@@ -1,0 +1,27 @@
+{
+  "name": "dawg",
+  "version": "0.0.1",
+  "description": "Documentation and whatnot generator",
+  "main": "dawg.js",
+  "dependencies": {
+    "handlebars": "~1.0.7",
+    "marked": "~0.2.7",
+    "optimist": "~0.3.5",
+    "underscore": "~1.4.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mattijs/dawg.git"
+  },
+  "keywords": [
+    "documentation",
+    "markdown"
+  ],
+  "author": "Mattijs Hoitink <mattijs@monkeyandmachine.com>",
+  "license": "Unlicense",
+  "readmeFilename": "README.md"
+}

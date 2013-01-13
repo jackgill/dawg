@@ -4,7 +4,8 @@ var fs     = require('fs'),
     path   = require('path'),
     _      = require('underscore'),
     handlebars = require('handlebars'),
-    marked = require('marked');
+    marked = require('marked'),
+    watch  = require('watch');
 
 // Supported file extensions
 var SUPPORTED = [ 'markdown', 'mdown', 'md' ];
@@ -154,11 +155,21 @@ function serve(source, options) {
     // Add defaults to the options
     options = _.defaults(options, { address: 'localhost:5678', template: TEMPLATE });
 
-    // @TODO Create a watch on the chapter directory
     var chapters = gather(source);
-
-    // Render the chapters
     var rendered = render(chapters, options.template);
+
+    // Create a watch on the chapter directory
+    var synching = false;
+    watch.watchTree(source, function(f) {
+        if (synching) return;
+        synching = true;
+
+        console.log('Synching source directory');
+        chapters = gather(source);
+        rendered = render(chapters, options.template);
+
+        synching = false;
+    });
 
     function handleRequest(request, response) {
         // Find the chapter name

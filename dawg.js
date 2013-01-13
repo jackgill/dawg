@@ -2,12 +2,15 @@
 
 var fs     = require('fs'),
     path   = require('path'),
-    fst    = require('fs-tools'),
+    _      = require('underscore'),
     handlebars = require('handlebars'),
     gfm    = require('github-flavored-markdown');
 
 // Supported file extensions
 var SUPPORTED = [ 'markdown', 'mdown', 'md' ];
+
+// Default template directory
+var TEMPLATE  = path.join(__dirname, 'template.html');
 
 /** Chapter ==================================================================================== */
 
@@ -40,18 +43,7 @@ Chapter.prototype.content = function(noCache) {
     return this._content;
 };
 
-Chapter.prototype.parse = function(noCache) {
-    noCache = (isBoolean(noCache)) ? noCache : false;
-
-    if (noCache || this._parsed === null) {
-        this._parsed = gfm.parse(this.content(noCache));
-    }
-
-    return this._parsed;
-};
-
 Chapter.prototype.title = function() {
-
     function filenameTitle(filename) {
         var title = stripExtension(filename);
 
@@ -98,29 +90,69 @@ function gather(source, options) {
 }
 
 /**
- * Render a source to a destination
- * @param {Array} chapters
+ * Render a list of chapters with a template.
+ * @param {Array} chapters      The list of chapters to render
+ * @param {String} template     The path to the template file
  */
-function render(chapters, options) {
-    // Build TOC
-    var toc = chapters.map(function(chapter) {
-        return [chapter.title(), chapter.target];
-    });
+function render(chapters, template) {
+    // Compile the template
+    template = compileTemplate(template, chapters);
 
-    // Load template
-    var template = fs.readFileSync(path.join(__dirname, 'template'), 'utf-8');
-    var compiled = handlebars.compile(template);
+    // Register chapter template helpers
+    //registerHelpers(chapter);
 
     // Render each chapter
+    var rendered = {};
     chapters.forEach(function(chapter) {
-        chapter.rendered = compiled({
-            toc:     toc,
+        rendered[chapter.filename] = template({
             chapter: chapter,
             content: gfm.parse(chapter.content())
         });
     });
 
-    return chapters;
+    return rendered;
+}
+
+/**
+ * Compile a template from a file and a list of chapters. Returns a function that can be used
+ * to render an HTML page with a context.
+ * @param {String} template
+ * @return {Function}
+ */
+function compileTemplate(template, chapters) {
+    // Check if the template exists
+    if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
+        // Use default template
+        template = TEMPLATE;
+    }
+
+    // Get the contents of the template
+    var content = fs.readFileSync(template, 'utf-8');
+
+    // Register handlebars helpers
+    handlebars.registerHelper('listChapters', function(title) {
+        var html = [];
+        if (title) {
+            html.push('<h1>' + title + '</h1>');
+        }
+        html.push('<ol class="chapters">');
+        chapters.forEach(function(chapter) {
+            var target = stripExtension(chapter.filename) + '.html';
+            html.push('<li><a href="' + target + '">' + chapter.title() + '</a></li>');
+        });
+        html.push('</ol>');
+
+        return html.join('\n');
+    });
+
+    handlebars.registerHelper('listTOC', function(chapter) {
+        var html = '<ul class="toc"></ul>';
+
+        return html;
+    });
+
+    // Compile the template using handlebars
+    return handlebars.compile(content);
 }
 
 /**
@@ -130,7 +162,7 @@ function render(chapters, options) {
  */
 function write(chapters, destination) {
     if (fs.existsSync(destination) && fs.statSync(destination).isDirectory()) {
-        fst.removeSync(destination);
+        remove(destination);
     }
 
     // Create destination
@@ -142,11 +174,38 @@ function write(chapters, destination) {
     });
 }
 
+/**
+ * Convert a source directory to a destination directory.
+ * @param {String} source
+ * @param {String} destination
+ * @param {Object} options
+ */
+function convert(source, destination, options) {
+    // Gather chapters
+    var chapters = gather(source);
+
+    // Render each chapter
+    chapters = render(chapters, options.template);
+
+    // Write out the chapters
+    write(chapters, destination);
+}
+
+
+/**
+ * Serve chapters from a source directory through an HTTP server
+ * @param {String} source
+ * @param {Object} options
+ */
 function serve(source, options) {
-    options = options || { address: 'localhost:5678' };
+    // Add defaults to the options
+    options = _.defaults(options, { address: 'localhost:5678', template: TEMPLATE });
 
     // @TODO Create a watch on the chapter directory
-    var chapters = render(gather(source));
+    var chapters = gather(source);
+
+    // Render the chapters
+    var rendered = render(chapters, options.template);
 
     function handleRequest(request, response) {
         // Find the chapter name
@@ -175,7 +234,7 @@ function serve(source, options) {
         }
         else {
             response.writeHead(200);
-            response.end(chapter.rendered);
+            response.end(rendered[chapter.filename]);
         }
 
     }
@@ -187,6 +246,7 @@ function serve(source, options) {
     var server = require('http')
         .createServer(handleRequest)
         .listen(address.port, address.host);
+
     console.log('Server listening on ' + address.host + ':' + address.port);
 }
 
@@ -207,12 +267,12 @@ function cli() {
         })
         .options('template', {
             'alias':   't',
-            'describe': 'Template directory containing template and style files',
-            'default': '_template',
+            'describe': 'Template directory name',
+            'default': 'template.html',
         })
         .options('address', {
             'alias':    'a',
-            'describe': 'The address to serve the chapters on',
+            'describe': 'Webserver address',
             'default':  'localhost:5678'
         })
         .argv;
@@ -223,11 +283,17 @@ function cli() {
         throw new Error('Source directory "' + source + '" does not exist.');
     }
 
-    // Find the templates directory
-    var template = path.join(source, args.template);
-    if (!fs.existsSync(template) || !fs.statSync(template).isDirectory()) {
+    // Destination (if provided)
+    var destination = args._[0];
+
+    // Find the template
+    var template = args['template'];
+    if (template.charAt(0) != '.' && template.charAt(0) != '/') {
+        template = path.join(source, args.template);
+    }
+    if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
         // Use default template
-        template = path.join(__dirname, '_template');
+        template = path.join(__dirname, 'template.html');
     }
 
     // Build options
@@ -236,16 +302,13 @@ function cli() {
         template: template
     }
 
-
-    if (args._.length < 1) {
-        // Serve the files from a webserver
+    if (!destination) {
+        // Serve the files from source
         serve(source, options);
     }
     else {
-        // Write to destination
-        var chapters = gather(source);
-        chapters = render(chapters, options);
-        write(chapters, args._[0]);
+        // Convert from source to destination
+        convert(source, destination, options);
     }
 }
 
@@ -253,9 +316,9 @@ function cli() {
 
 // our awesome export products
 module.exports = {
-    gather: gather,
-    render: render,
-    write:  write
+    gather:  gather,
+    render:  render,
+    convert: convert
 };
 
 /** Utilities ================================================================================== */
@@ -277,6 +340,28 @@ function isSupported(file) {
  */
 function stripExtension(p) {
     return p.substring(0, p.length - path.extname(p).length);
+}
+
+/**
+ * Recursively remove a file or directory, synchronous.
+ * @param {String} dir
+ */
+function remove(file) {
+    file = path.normalize(file);
+    var stat = path.lstatSync(file);
+
+    // Check if it is a file
+    if (stat.isFile()) {
+        fs.unlinkSync(file);
+    }
+    else {
+        // ... it must be directory
+        fs.readdirSync(file).forEach(function(child) {
+            remove(path.join(file, child));
+        });
+
+        fs.rmdirSync(file);
+    }
 }
 
 /**

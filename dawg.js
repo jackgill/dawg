@@ -5,6 +5,7 @@ var fs     = require('fs'),
     _      = require('underscore'),
     handlebars = require('handlebars'),
     marked = require('marked'),
+    hljs   = require('highlight.js'), 
     watch  = require('watch');
 
 // Supported file extensions
@@ -103,6 +104,19 @@ function render(chapters, template) {
     // Compile the template
     template = compileTemplate(template);
 
+    // Set markdown options
+    marked.setOptions({
+        gfm: true,
+        highlight: function(code, lang) {
+            if (lang && lang.length) {
+                return hljs.highlight(lang, code).value;
+            }
+            else {
+                return hljs.highlightAuto(code).value;
+            }
+        }
+    });
+
     // Render each chapter
     var rendered = {};
     chapters.forEach(function(chapter) {
@@ -153,23 +167,26 @@ function convert(source, destination, options) {
  */
 function serve(source, options) {
     // Add defaults to the options
-    options = _.defaults(options, { address: 'localhost:5678', template: TEMPLATE });
+    options = _.defaults(options, { address: 'localhost:5678', template: TEMPLATE, watch: true });
 
+    // Get a list of chapters and their rendered version
     var chapters = gather(source);
     var rendered = render(chapters, options.template);
 
-    // Create a watch on the chapter directory
-    var synching = false;
-    watch.watchTree(source, function(f) {
-        if (synching) return;
-        synching = true;
+    if (options.watch) {
+        // Create a watch on the chapter directory
+        var synching = false;
+        watch.watchTree(source, function(f) {
+            if (synching) return;
+            synching = true;
 
-        console.log('Synching source directory');
-        chapters = gather(source);
-        rendered = render(chapters, options.template);
+            console.log('Synching source directory');
+            chapters = gather(source);
+            rendered = render(chapters, options.template);
 
-        synching = false;
-    });
+            synching = false;
+        });
+    }
 
     function handleRequest(request, response) {
         // Find the chapter name
@@ -200,7 +217,6 @@ function serve(source, options) {
             response.writeHead(200);
             response.end(rendered[chapter.filename]);
         }
-
     }
 
     // Parse the address

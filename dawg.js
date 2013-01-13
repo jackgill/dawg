@@ -270,10 +270,21 @@ function isSupported(file) {
     return SUPPORTED.indexOf(extension) >= 0;
 };
 
+/**
+ * Strip the extension of a path
+ * @param {String} path
+ * @return {String}
+ */
 function stripExtension(p) {
     return p.substring(0, p.length - path.extname(p).length);
 }
 
+/**
+ * Parse an addres. This a combination of host and port like `localhost:5678`.
+ * The address is parsed into an Object with a host and port key.
+ * @param {String} address
+ * @return {Object}
+ */
 function parseAddress(address) {
     var split = (String(address)).split(':', 2);
 
@@ -289,9 +300,20 @@ function parseAddress(address) {
     return address;
 }
 
-function isObject(obj) {
-    return obj == Object(obj);
+/**
+ * Check if a value is an Object
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
+function isObject(val) {
+    return val == Object(val);
 }
+
+/**
+ * Check if a value is an Boolean
+ * @param {Mixed} val
+ * @return {Boolean}
+ */
 function isBoolean(val) {
     return typeof(val) == 'boolean';
 }

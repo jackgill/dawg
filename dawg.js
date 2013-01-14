@@ -2,6 +2,7 @@
 
 var fs     = require('fs'),
     path   = require('path'),
+    crypto = require('crypto'),
     _      = require('underscore'),
     handlebars = require('handlebars'),
     marked = require('marked'),
@@ -35,6 +36,7 @@ function Chapter(source) {
     this.path = source;
     this.filename = path.basename(source);
     this.target = stripExtension(this.filename) + '.html';
+    this.id     = makeHash(stripExtension(this.filename));
 
     this._content = null;
     this._parsed  = null;
@@ -102,6 +104,22 @@ Chapter.prototype.parse = function(noCache) {
     return this._parsed;
 };
 
+function ChapterCollection(chapters) {
+    this.chapters = {};
+}
+
+ChapterCollection.prototype.forEach = function(callback) {
+    _.each(this.chapters, callback);
+};
+
+ChapterCollection.prototype.add = function(chapter) {
+    this.chapters[chapter.id] = chapter;
+};
+
+ChapterCollection.prototype.getByFilename = function(filename) {
+    var hash = makeHash(stripExtension(path.basename(filename)));
+    return this.chapters[hash];
+};
 /** Public functions =========================================================================== */
 
 /**
@@ -113,12 +131,14 @@ function gather(source, options) {
     // Find all chapters
     var chapters = fs.readdirSync(source);
 
+    var collection = new ChapterCollection();
+
     // Create complete file list
-    chapters = chapters.filter(isSupported).map(function(filename) {
-        return new Chapter(path.join(source, filename));
+    chapters.filter(isSupported).forEach(function(filename) {
+        collection.add(new Chapter(path.join(source, filename)));
     });
 
-    return chapters;
+    return collection;
 }
 
 /**
@@ -218,12 +238,7 @@ function serve(source, options) {
         }
         else {
             // Try to find the chapter
-            chapter = null;
-            chapters.forEach(function(availableChapter) {
-                if (availableChapter.target === chapterName) {
-                    chapter = availableChapter;
-                }
-            });
+            chapter = chapters.getByFilename(chapterName);
         }
 
         if (!chapter) {
@@ -548,4 +563,15 @@ function isObject(val) {
  */
 function isBoolean(val) {
     return typeof(val) == 'boolean';
+}
+
+/**
+ * Create an insecure (saltless) MD5 hash of a String value.
+ * @param {String} val
+ * @return {String}
+ */
+function makeHash(val) {
+    return crypto.createHash('md5')
+        .update(val)
+        .digest('hex');
 }

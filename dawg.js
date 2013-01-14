@@ -36,7 +36,9 @@ function Chapter(source) {
     this.path = source;
     this.filename = path.basename(source);
     this.target = stripExtension(this.filename) + '.html';
-    this.id     = makeHash(stripExtension(this.filename));
+
+    this.name   = stripExtension(this.filename);
+    this.id     = makeHash(this.name);
 
     this._content = null;
     this._parsed  = null;
@@ -116,8 +118,8 @@ ChapterCollection.prototype.add = function(chapter) {
     this.chapters[chapter.id] = chapter;
 };
 
-ChapterCollection.prototype.getByFilename = function(filename) {
-    var hash = makeHash(stripExtension(path.basename(filename)));
+ChapterCollection.prototype.getByName = function(name) {
+    var hash = makeHash(stripExtension(name));
     return this.chapters[hash];
 };
 /** Public functions =========================================================================== */
@@ -191,6 +193,7 @@ function convert(source, destination, options) {
     for (var original in rendered) {
         if (rendered.hasOwnProperty(original)) {
             var content = rendered[original];
+            // @TODO Rewrite all chapter links to .html
             var target  = stripExtension(original) + '.html';
             fs.writeFileSync(path.join(destination, target), content);
         }
@@ -238,7 +241,7 @@ function serve(source, options) {
         }
         else {
             // Try to find the chapter
-            chapter = chapters.getByFilename(chapterName);
+            chapter = chapters.getByName(chapterName);
         }
 
         if (!chapter) {
@@ -462,8 +465,7 @@ function registerChapterHelpers(chapters) {
         }
         html.push('<ol class="chapters">');
         chapters.forEach(function(chapter) {
-            var target = stripExtension(chapter.filename) + '.html';
-            html.push('<li><a href="' + target + '">' + chapter.title() + '</a></li>');
+            html.push('<li><a href="' + chapter.filename + '">' + chapter.title() + '</a></li>');
         });
         html.push('</ol>');
 

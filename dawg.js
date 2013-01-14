@@ -11,6 +11,7 @@ var fs     = require('fs'),
 // RC filename
 var RCFILE = '.dawg';
 
+// Default port
 var PORT = '5678';
 
 // Supported file extensions
@@ -256,28 +257,27 @@ function cli() {
         .usage('Usage: $0 [--source|-s SOURCE] [--output|-o OUTPUT]')
         .options('source', {
             'alias':   's',
-            'describe': 'Source directory containing chapter files',
-            'default': './docs',
+            'describe': 'Source directory containing chapter files. Default: ./docs',
         })
         .options('output', {
             'alias': 'o',
             'describe': 'Output directory. This will disable the webserver'
         })
+        .describe('serve', 'Serve the files instead of outputting them.')
+        .options('config', {
+            "alias":    "c",
+            "describe": "Config file with parameters"
+        })
         .options('template', {
             'alias':   't',
-            'describe': 'Template path',
-            'default': 'template.html',
+            'describe': 'Template path'
         })
-        .options('port', {
-            'describe': 'Port for the webserver',
-            'default': PORT
-        })
-        .options('host', {
-            'describe': 'Host for the webserver',
-            'default': 'localhost'
-        })
+        .describe('port', 'Port for the webserver')
+        .describe('host', 'Host for the webserver')
+        .describe('watch', 'Watch source files for changes')
         .argv;
 
+    // Check for help argument
     if (args['help']) {
         cli.showHelp(console.log);
         process.exit(0);
@@ -285,56 +285,89 @@ function cli() {
 
     // Options, with defaults
     var options = {
+        source:   path.normalize('./docs'),
         template: path.join(__dirname, TEMPLATE),
-        host: '127.0.0.1',
-        port: '5678'
+        serve:    true,
+        host:     '127.0.0.1',
+        port:     PORT,
+        watch:    true
     };
 
-    // Check for .dawg file in the current working directory
-    var rcPath = path.join(process.cwd(), RCFILE);
-    if (fs.existsSync(rcPath) && fs.statSync(rcPath).isFile()) {
-        var rcOptions = fs.readFileSync(rcPath, 'utf-8');
-        rcOptions = JSON.parse(rcOptions);
-        options = _.extend(options, rcOptions);
+    // Determine the config to load
+    var configPath = path.join(process.cwd(), RCFILE);
+    if (args.hasOwnProperty(args['config'])) {
+        configPath = args['config'];
     }
 
-    // Find the source directory
+    if (fs.existsSync(configPath)) {
+        // Try to load the config file
+        try {
+            options = _.extend(options, loadConfigFile(configPath));
+        }
+        catch (error) {
+            console.err('Could not load config file: ' + error.message);
+            cli.showHelp();
+            process.exit(1);
+        }
+    }
+
+    // --source - Find the source directory
     var source = path.resolve(args['source']);
     if (!fs.existsSync(source)) {
         throw new Error('Source directory "' + source + '" does not exist.');
     }
 
-    // Destination (if provided)
-    var destination = args._[0];
+    // --outpu - output directory (if provided)
+    if (args.hasOwnProperty('output')) {
+        if (!fs.existsSync(args['output'])) {
+            throw new Error('Output directory "' + args['output'] + '" does not exist.');
+        }
 
-    // Find the template
-    var template = args['template'];
-    if (template.charAt(0) != '.' && template.charAt(0) != '/') {
-        template = path.join(source, args.template);
+        options.destination = args['output'];
+        options.serve = false;
+    }
+
+    // --watch || --no-watch
+    if (args.hasOwnProperty('watch')) {
+        options.watch = args['watch'];
+    }
+
+    // --template
+    if (args.hasOwnProperty('template')) {
+        if (template.charAt(0) != '.' && template.charAt(0) != '/') {
+            template = path.join(source, args.template);
+        }
+
+        // Check if the template exists
         if (fs.existsSync(template) && fs.statSync(template).isFile()) {
             options.template = template;
         }
     }
 
-    // Parse host
+    // --serve Check for explicit --serve
+    if (args.hasOwnProperty('serve') && args['serve']) {
+        options.serve = true;
+    }
+
+    // --host - Parse host
     if (args.hasOwnProperty('host')) {
         var host = (args['host'] === 'localhost') ? '127.0.0.1' : args['host'];
         options.host = host;
     }
 
-    // Parse port
+    // --port - Parse port
     if (args.hasOwnProperty('port')) {
         options.port = args['port'];
     }
 
     // Either serve or convert the source files
-    if (!destination) {
+    if (!options.destination || options.serve) {
         // Serve the files from source
-        serve(source, options);
+        serve(options.source, options);
     }
     else {
         // Convert from source to destination
-        convert(source, destination, options);
+        convert(options.source, options.destination, options);
     }
 }
 
@@ -344,6 +377,30 @@ if (module.filename == __filename) {
 }
 
 /** Utilities ================================================================================== */
+
+/**
+ * Load JSON configuration from a file.
+ * @param {String} configPath
+ * @return {Object}
+ */
+function loadConfigFile(configPath) {
+    configPath = path.normalize(configPath);
+
+    if (!fs.existsSync(configPath)) {
+        throw new Error('Path "' + configPath + '" does not exist.');
+    }
+    else if (!fs.statSync(configPath).isFile()) {
+        throw new Error('Path "' + configPath + '" is not a file.');
+    }
+
+    var content = fs.readFileSync(configPath, 'utf-8');
+    try {
+        return JSON.parse(content);
+    }
+    catch (error) {
+        throw new Error('Could not parse config file: ' + error.message);
+    }
+}
 
 /**
  * Compile a template from a file and a list of chapters. Returns a function that can be used
@@ -475,5 +532,3 @@ function isObject(val) {
 function isBoolean(val) {
     return typeof(val) == 'boolean';
 }
-
-/** RUN ======================================================================================== */

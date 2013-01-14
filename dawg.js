@@ -78,6 +78,30 @@ Chapter.prototype.title = function() {
     return this._title;
 };
 
+Chapter.prototype.parse = function(noCache) {
+    noCache = (isBoolean(noCache)) ? noCache : false;
+
+    // Set markdown options
+    marked.setOptions({
+        gfm: true,
+        highlight: function(code, lang) {
+            if (lang && lang.length) {
+                return hljs.highlight(lang, code).value;
+            }
+            else {
+                return hljs.highlightAuto(code).value;
+            }
+        }
+    });
+
+    // Parse the content into HTML
+    if (noCache || this._parsed === null) {
+        this._parsed = marked(this.content(noCache));
+    }
+
+    return this._parsed;
+};
+
 /** Public functions =========================================================================== */
 
 /**
@@ -110,25 +134,12 @@ function render(chapters, template) {
     // Compile the template
     template = compileTemplate(template);
 
-    // Set markdown options
-    marked.setOptions({
-        gfm: true,
-        highlight: function(code, lang) {
-            if (lang && lang.length) {
-                return hljs.highlight(lang, code).value;
-            }
-            else {
-                return hljs.highlightAuto(code).value;
-            }
-        }
-    });
-
     // Render each chapter
     var rendered = {};
     chapters.forEach(function(chapter) {
         rendered[chapter.filename] = template({
             chapter: chapter,
-            content: marked(chapter.content())
+            content: chapter.parse()
         });
     });
 

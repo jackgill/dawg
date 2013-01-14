@@ -461,6 +461,12 @@ function registerChapterHelpers(chapters) {
 
         return html;
     });
+
+    // Chapter title helper
+    handlebars.registerHelper('title', function(chapter) {
+        if (!chapter) return '';
+        return chapter.title();
+    });
 }
 
 

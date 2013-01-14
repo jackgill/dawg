@@ -8,6 +8,11 @@ var fs     = require('fs'),
     hljs   = require('highlight.js'), 
     watch  = require('watch');
 
+// RC filename
+var RCFILE = '.dawg';
+
+var PORT = '5678';
+
 // Supported file extensions
 var SUPPORTED = [ 'markdown', 'mdown', 'md' ];
 
@@ -167,7 +172,7 @@ function convert(source, destination, options) {
  */
 function serve(source, options) {
     // Add defaults to the options
-    options = _.defaults(options, { address: 'localhost:5678', template: TEMPLATE, watch: true });
+    options = _.defaults(options, { port: PORT, host: '127.0.0.1', template: TEMPLATE, watch: true });
 
     // Get a list of chapters and their rendered version
     var chapters = gather(source);
@@ -219,15 +224,12 @@ function serve(source, options) {
         }
     }
 
-    // Parse the address
-    var address = (isObject(options.address)) ? options.address : parseAddress(options.address);
-
     // Create and start the server
     var server = require('http')
         .createServer(handleRequest)
-        .listen(address.port, address.host);
+        .listen(options.port, options.host);
 
-    console.log('Server listening on ' + address.host + ':' + address.port);
+    console.log('Server listening on ' + options.host + ':' + options.port);
 }
 
 /** Exports ==================================================================================== */
@@ -251,27 +253,49 @@ function cli() {
 
     // Source option
     var args = cli
-        .usage('Usage: $0 [DESTINATION]')
+        .usage('Usage: $0 [--source|-s SOURCE] [--output|-o OUTPUT]')
         .options('source', {
             'alias':   's',
             'describe': 'Source directory containing chapter files',
             'default': './docs',
+        })
+        .options('output', {
+            'alias': 'o',
+            'describe': 'Output directory. This will disable the webserver'
         })
         .options('template', {
             'alias':   't',
             'describe': 'Template path',
             'default': 'template.html',
         })
-        .options('address', {
-            'alias':    'a',
-            'describe': 'Webserver address',
-            'default':  'localhost:5678'
+        .options('port', {
+            'describe': 'Port for the webserver',
+            'default': PORT
+        })
+        .options('host', {
+            'describe': 'Host for the webserver',
+            'default': 'localhost'
         })
         .argv;
 
     if (args['help']) {
         cli.showHelp(console.log);
         process.exit(0);
+    }
+
+    // Options, with defaults
+    var options = {
+        template: path.join(__dirname, TEMPLATE),
+        host: '127.0.0.1',
+        port: '5678'
+    };
+
+    // Check for .dawg file in the current working directory
+    var rcPath = path.join(process.cwd(), RCFILE);
+    if (fs.existsSync(rcPath) && fs.statSync(rcPath).isFile()) {
+        var rcOptions = fs.readFileSync(rcPath, 'utf-8');
+        rcOptions = JSON.parse(rcOptions);
+        options = _.extend(options, rcOptions);
     }
 
     // Find the source directory
@@ -287,18 +311,23 @@ function cli() {
     var template = args['template'];
     if (template.charAt(0) != '.' && template.charAt(0) != '/') {
         template = path.join(source, args.template);
-    }
-    if (!fs.existsSync(template) || !fs.statSync(template).isFile()) {
-        // Use default template
-        template = TEMPLATE;
-    }
-
-    // Build options
-    var options = {
-        address:  parseAddress(args['address']),
-        template: template
+        if (fs.existsSync(template) && fs.statSync(template).isFile()) {
+            options.template = template;
+        }
     }
 
+    // Parse host
+    if (args.hasOwnProperty('host')) {
+        var host = (args['host'] === 'localhost') ? '127.0.0.1' : args['host'];
+        options.host = host;
+    }
+
+    // Parse port
+    if (args.hasOwnProperty('port')) {
+        options.port = args['port'];
+    }
+
+    // Either serve or convert the source files
     if (!destination) {
         // Serve the files from source
         serve(source, options);

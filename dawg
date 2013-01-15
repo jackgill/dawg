@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+// Run the dawg cli
+require('./lib/cli').run();

@@ -16,7 +16,7 @@ parsed using a markdown parser which also supports [github flavored markdown](ht
 
 The numbers at the beginning of each file are meant to sort the files. Dawg does not know or support ways to sort chapters, it uses the order on the filesystem as it's guide.
 
-Files can be either converted and written to an output directory or served using a webserver. For more usage information see [the usage chapter](02-usage.html).
+Files can be either converted and written to an output directory or served using a webserver. For more usage information see [the usage chapter](02-usage.md).
 
 ## Need fancy features?
 

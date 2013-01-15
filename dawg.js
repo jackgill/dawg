@@ -562,27 +562,6 @@ function remove(file) {
 }
 
 /**
- * Parse an addres. This a combination of host and port like `localhost:5678`.
- * The address is parsed into an Object with a host and port key.
- * @param {String} address
- * @return {Object}
- */
-function parseAddress(address) {
-    var split = (String(address)).split(':', 2);
-
-    var address = {
-        port: split.pop(),
-        host: split.pop() || '127.0.0.1'
-    };
-
-    if (address.host == 'localhost') {
-        address.host = '127.0.0.1';
-    }
-
-    return address;
-}
-
-/**
  * Check if a value is an Object
  * @param {Mixed} obj
  * @return {Boolean}

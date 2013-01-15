@@ -1,8 +1,12 @@
 # dawg - Document and whatnot generator
 
-`dawg` is a small script that will convert a set of markdown files in a directory into HTML, nothing fancy.
+`dawg` is a simple tool to convert one or more markdown files into HTML, nothing fancy really. The converted files can be written to disk or served through a webserver.
+
+`dawg` is oppurtinistic software. This means that this module best in a certain scenario and that few safeguards are in place this scenario is not optimal. This will probably change in the future though.
 
 ## Install
+
+Installation goes through [NPM](http://npmjs.org):
 
 ```
 $ npm install dawg
@@ -10,13 +14,24 @@ $ npm install dawg
 
 ## Usage
 
-dawg has a command line interface that allows you to serve a directory or convert a source to a destination. Use `dawg.js --help` for more information:
+dawg has a command line interface that allows you to convert and serve or write a list of mardown files as HTML. Use `dawg.js --help` for more information:
 
 ```
 $ dawg.js --help
 ```
 
-The default behaviour is to serve files from the `docs` directory of the current working directory.
+The default behaviour is to serve files from the `docs` directory of your current working directory. The directory could have a structure like the docs directory of this project:
+
+```
+$ ls ./docs
+  01-introduction.md
+  02-usage.md
+  03-customization.md
+  04-integration.md
+```
+
+When dawg is run on this directory the files get served on http://localhost:5678. When no chapter is specified in the
+URL the first one from the list will be taken.
 
 ## License
 

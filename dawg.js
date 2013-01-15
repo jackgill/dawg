@@ -265,29 +265,22 @@ function serve(source, options) {
 
     function handleRequest(request, response) {
         // @TODO Catch browser requests (favicon.ico etc)
-        // Find the chapter name
-        var chapterName = request.url;
-        if (request.url.charAt(0) === '/') {
-            chapterName = chapterName.substring(1);
+        // Get the chapter name
+        var name = request.url;
+        if (name.charAt(0) === '/') {
+            name = name.substring(1);
         }
 
-        var chapter = null;
-        if (chapterName === '') {
-            chapter = chapters[0];
-        }
-        else {
-            // Try to find the chapter
-            chapter = chapters.findByName(chapterName);
-        }
-
+        // Try to find the chapter
+        var chapter = (name.length) ? chapters.findByName(name) : chapters.findByIndex(1);
         if (!chapter) {
             response.writeHead(404);
-            response.end();
         }
         else {
             response.writeHead(200);
-            response.end(rendered[chapter.filename]);
+            response.write(rendered[chapter.filename]);
         }
+        response.end();
     }
 
     // Create and start the server

@@ -512,7 +512,7 @@ function stripExtension(p) {
  */
 function remove(file) {
     file = path.normalize(file);
-    var stat = path.lstatSync(file);
+    var stat = fs.lstatSync(file);
 
     // Check if it is a file
     if (stat.isFile()) {

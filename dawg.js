@@ -4,10 +4,11 @@ var fs     = require('fs'),
     path   = require('path'),
     crypto = require('crypto'),
     _      = require('underscore'),
-    handlebars = require('handlebars'),
+    List   = require('collections/list'),
     marked = require('marked'),
-    hljs   = require('highlight.js'), 
-    watch  = require('watch');
+    hljs   = require('highlight.js'),
+    watch  = require('watch'),
+    handlebars = require('handlebars');
 
 // RC filename
 var RCFILE = '.dawg';
@@ -23,7 +24,7 @@ var TEMPLATE  = path.join(__dirname, 'template.html');
 
 /** Chapter ==================================================================================== */
 
-function Chapter(source) {
+function Chapter(source, index) {
     if (!fs.existsSync(source)) {
         throw new Error('Source "' + source + '" does not exist.');
     }
@@ -35,11 +36,12 @@ function Chapter(source) {
 
     this.path = source;
     this.filename = path.basename(source);
-    this.target = stripExtension(this.filename) + '.html';
 
-    this.name   = stripExtension(this.filename);
-    this.id     = makeHash(this.name);
+    this.name = stripExtension(this.filename);
+    this.id = makeHash(this.name);
+    this.index  = (index) ? index : -1;
 
+    // Caches
     this._content = null;
     this._parsed  = null;
     this._title   = null;
@@ -106,22 +108,52 @@ Chapter.prototype.parse = function(noCache) {
     return this._parsed;
 };
 
+Chapter.prototype.toString = function() {
+    return this.id;
+};
+
+/**
+ * Basic collection for chapters.
+ * @param {Array} chapters
+ */
 function ChapterCollection(chapters) {
-    this.chapters = {};
+    function equals(chapter, value) {
+        return chapter.id == value;
+    }
+
+    List.call(this, (chapters || []), equals);
 }
+ChapterCollection.prototype = List.prototype;
 
-ChapterCollection.prototype.forEach = function(callback) {
-    _.each(this.chapters, callback);
-};
-
-ChapterCollection.prototype.add = function(chapter) {
-    this.chapters[chapter.id] = chapter;
-};
-
-ChapterCollection.prototype.getByName = function(name) {
+/**
+ * Find a Chapter by its name. The extension is stripped from the name before searching.
+ * @param {String} name     The name of the chapter to find.
+ * @return {Chapter}        The chapter or UNDEFINED when it does not exist
+ */
+ChapterCollection.prototype.findByName = function(name) {
+    // Create a has from the chapter name
     var hash = makeHash(stripExtension(name));
-    return this.chapters[hash];
+
+    // Try to locate the chapter by it's hash
+    var chapter = this.find(hash);
+
+    return (chapter) ? chapter.value : undefined;
 };
+
+/**
+ * Find a Chapter by it's index number.
+ * @param {Integer|String} index
+ * @return {Chapter}
+ */
+ChapterCollection.prototype.findByIndex = function(index) {
+    // Find the chapter with a custom equals function
+    var chapter = this.find(index, function(chapter, index) {
+        return chapter.index == index;
+    });
+
+    return (chapter) ? chapter.value: undefined;
+};
+
 /** Public functions =========================================================================== */
 
 /**
@@ -133,11 +165,13 @@ function gather(source, options) {
     // Find all chapters
     var chapters = fs.readdirSync(source);
 
+    // Create a collection for the Chapters
     var collection = new ChapterCollection();
 
     // Create complete file list
-    chapters.filter(isSupported).forEach(function(filename) {
-        collection.add(new Chapter(path.join(source, filename)));
+    chapters.filter(isSupported).forEach(function(filename, index) {
+        var chapter = new Chapter(path.join(source, filename), index + 1);
+        collection.push(chapter);
     });
 
     return collection;
@@ -159,6 +193,7 @@ function render(chapters, template) {
     // Render each chapter
     var rendered = {};
     chapters.forEach(function(chapter) {
+        if (!chapter) return;
         rendered[chapter.filename] = template({
             chapter: chapter,
             content: chapter.parse()
@@ -229,6 +264,7 @@ function serve(source, options) {
     }
 
     function handleRequest(request, response) {
+        // @TODO Catch browser requests (favicon.ico etc)
         // Find the chapter name
         var chapterName = request.url;
         if (request.url.charAt(0) === '/') {
@@ -241,7 +277,7 @@ function serve(source, options) {
         }
         else {
             // Try to find the chapter
-            chapter = chapters.getByName(chapterName);
+            chapter = chapters.findByName(chapterName);
         }
 
         if (!chapter) {
@@ -348,10 +384,6 @@ function cli() {
 
     // --outpu - output directory (if provided)
     if (args.hasOwnProperty('output')) {
-        if (!fs.existsSync(args['output'])) {
-            throw new Error('Output directory "' + args['output'] + '" does not exist.');
-        }
-
         options.destination = args['output'];
         options.serve = false;
     }
@@ -465,6 +497,7 @@ function registerChapterHelpers(chapters) {
         }
         html.push('<ol class="chapters">');
         chapters.forEach(function(chapter) {
+            if (!chapter) return;
             html.push('<li><a href="' + chapter.filename + '">' + chapter.title() + '</a></li>');
         });
         html.push('</ol>');

@@ -7,7 +7,6 @@
     "handlebars": "~1.0.7",
     "marked": "~0.2.7",
     "optimist": "~0.3.5",
-    "underscore": "~1.4.3",
     "watch": "~0.5.1",
     "highlight.js": "~7.3.0",
     "collections": "~0.1.5"

@@ -4,12 +4,13 @@
   "description": "Documentation and whatnot generator",
   "main": "dawg.js",
   "dependencies": {
+    "clean-css": "~0.9.1",
+    "collections": "~0.1.5",
+    "highlight.js": "~7.3.0",
     "handlebars": "~1.0.7",
     "marked": "~0.2.7",
     "optimist": "~0.3.5",
-    "watch": "~0.5.1",
-    "highlight.js": "~7.3.0",
-    "collections": "~0.1.5"
+    "watch": "~0.5.1"
   },
   "devDependencies": {},
   "scripts": {

@@ -2,7 +2,7 @@
 
 `dawg` is meant to be used as a commandline tool. The `dawg.js` file can be run from the commandline:
 
-```
+```bash
 $ ./dawg.js
 ```
 
@@ -13,7 +13,7 @@ on [localhost:5678](http://localhost:5678). When the `docs` directory cannot be 
 
 The `--help` flag will display the usage and available options:
 
-```
+```bash
 $ ./dawg.js --help
 Usage: node ./dawg.js [--source|-s SOURCE] [--output|-o OUTPUT]
 
@@ -38,7 +38,7 @@ When an output path is given the converted source file(s) will be written to thi
 
 When outputting the source files the `--serve` option is disabled by default. To still serve the files as well as outputting them explicitly add the `--serve` options to the parameters:
 
-```
+```bash
 $ ./dawg.js --output ./build --serve
 ```
 

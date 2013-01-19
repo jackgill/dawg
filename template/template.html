@@ -1,32 +1,13 @@
 <!doctype html>
 <html>
     <head>
-        <title>{{title chapter}}</title>
+        <title>{{chapter.title}}</title>
         <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
-        <style>
-            /* Eric Meyer's CSS reset (http://meyerweb.com/eric/tools/css/reset/) v1.0 | 20080212 */ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { margin: 0; padding: 0; border: 0; outline: 0; font-size: 100%; vertical-align: baseline; background: transparent; } body { line-height: 1; } ol, ul { list-style: none; } blockquote, q { quotes: none; } blockquote:before, blockquote:after, q:before, q:after { content: ""; content: none; } :focus { outline: 0; } ins { text-decoration: none; } del { text-decoration: line-through; } /* tables still need 'cellspacing="0"' in the markup */ table { border-collapse: collapse; border-spacing: 0; } body { font: 14px Georgia, serif; line-height: 1.5; } a:link, a:visited { color: #0000ab; } h1, h2, h3, h4, h5, h6, p, ul, ol, pre { margin-bottom: 21px; } h1 { font-size: 24px; line-height: 28px; } h2 { font-size: 18px; line-height: 28px; } pre, code { background: #eee; } code { padding: 1px 3px; font: 12px Monaco, monospace; } pre code { padding: 0; } pre { padding: 10px; line-height: 1.2; } ol { list-style-type: decimal; } ul { list-style-type: disc; } ol, ul { margin-left: 40px; } #content { position: relative; margin: 20px 20px 80px; } a.edit { float: right; }
-            body {
-                font-family: 'Source Sans Pro', sans-serif;
-            }
-            .toc {
-                position: fixed; top: 0; left: 0;
-                width: 200px; padding: 20px 0 0 20px;
-            }
-            .toc a:link, .toc a:visited { color: #0000ab; }
-            .toc ol {
-              margin-left: 20px; margin-bottom: 20px;
-              list-style-type: decimal;
-            }
-            .toc ol li { margin: 2px 0; }
-            .toc h1 { font-size: 18px; }
-
-            .content { margin-left: 200px; padding: 20px 20px 80px; }
-        </style>
+        {{{styling}}}
     </head>
     <body>
 
         <div class="toc">
-            {{{listTOC chapter}}}
             {{{listChapters "Chapters"}}}
         </div>
 

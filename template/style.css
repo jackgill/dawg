@@ -1,0 +1,92 @@
+/* General */
+
+html, body {
+    font-size: 14px;
+    font-family: "Helvetica", "Arial", sans-serif;
+    line-height: 1.5;
+}
+
+a:link, a:visited {
+    color: #4183c4;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+ol {
+    padding: 0;
+    margin: 0;
+    list-style-type: decimal;
+}
+
+pre {
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    line-height: 19px;
+    overflow: auto;
+    padding: 6px 10px;
+    border-radius: 3px;
+}
+
+code {
+    margin: 0 2px;
+    padding: 0px 5px;
+    border: 1px solid #eaeaea;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+
+    white-space: no-wrap;
+    font-size: 12px;
+    font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
+pre code {
+    font-size: inherit;
+    margin: 0;
+    border: 0;
+}
+
+blockquote {
+    margin: 15px 10px;
+    padding: 0 15px;
+    border-left: 4px solid #DDD;
+    color: #777;
+}
+
+/* Table of Contents */
+
+.toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    padding: 20px 0 0 20px;
+}
+
+.toc h1 {
+    font-size: 18px;
+    margin-top: 0;
+}
+.toc h1:first-child {
+    margin-top: 8px;
+}
+
+.toc ol {
+    margin: 0 0 20px 20px;
+    color: #aaa;
+}
+.toc ol li {
+    margin: 2px 0;
+}
+
+/* Markdown content */
+.content {
+    margin-left: 200px;
+    padding: 20px 20px 80px;
+}
+.content h1:first-child {
+    margin-top: 0;
+}
+

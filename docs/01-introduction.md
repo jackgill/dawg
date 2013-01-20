@@ -5,11 +5,14 @@
 dawg is a small tool that can be used to convert and view documentation that consists of a set of markdown files, called chapters that live in a directory.
 A great example is the directory this file is in. It has the following structure that produces this documentation through dawg:
 
-    docs
-      |- 01-introduction.md
-      |- 02-usage.md
-      |- 03-customization.md
-      `- 04-integration.md
+```bash
+docs
+  |- 01-introduction.md
+  |- 02-usage.md
+  |- 03-customization.md
+  |- 04-integration.md
+  `- 05-development.md
+```
 
 Each file in the `docs` directory is treated as a chapter by dawg. These chapters are indexed and
 parsed using a markdown parser which also supports [github flavored markdown](http://github.github.com/github-flavored-markdown/).

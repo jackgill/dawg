@@ -28,12 +28,29 @@ $ ls ./docs
   02-usage.md
   03-customization.md
   04-integration.md
+  05-development.md
 ```
 
 When dawg is run on this directory the files get served on http://localhost:5678. When no chapter is specified in the
 URL the first one from the list will be taken.
 
-## License
+## Development
+
+For instructions on how to start developing on dawg see [the development chapter](docs/05-development.md).
+
+This is a short list of features that are planned for future releases:
+
+- Highlighting through pygments through cli flag
+- More templating options
+  - Custom templates
+  - Template presets
+  - Remote stylesheets
+  - More template helpers
+- Internal server polish
+  - 404 page
+  - chapter index
+
+# License
 
 The Unlicense:
 
@@ -61,3 +78,11 @@ The Unlicense:
     OTHER DEALINGS IN THE SOFTWARE.
 
     For more information, please refer to <http://unlicense.org/>
+
+# Changelog
+
+_v0.0.1_ (prototype)
+
+- cli interface
+- chapter conversions
+- chapter serving

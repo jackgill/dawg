@@ -1,30 +1,36 @@
 {
-  "name": "dawg",
-  "version": "0.0.1",
+  "name":        "dawg",
+  "version":     "0.0.1",
   "description": "Documentation and whatnot generator",
-  "main": "dawg.js",
+  "author":      "Mattijs Hoitink <mattijs@monkeyandmachine.com>",
+  "license":     "Unlicense",
+  "homepage":    "https://github.com/mattijs/dawg",
+  "keywords": [
+    "documentation",
+    "docs",
+    "markdown"
+  ],
+  "main":        "lib/dawg",
+  "repository": {
+    "type": "git",
+    "url":  "git://github.com/mattijs/dawg.git"
+  },
   "dependencies": {
-    "clean-css": "~0.9.1",
-    "collections": "~0.1.5",
+    "clean-css":    "~0.9.1",
+    "collections":  "~0.1.5",
     "highlight.js": "~7.3.0",
-    "handlebars": "~1.0.7",
-    "marked": "~0.2.7",
-    "optimist": "~0.3.5",
-    "watchr": "~2.3.3"
+    "handlebars":   "~1.0.7",
+    "marked":       "~0.2.7",
+    "optimist":     "~0.3.5",
+    "watchr":       "~2.3.3"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start":    "node ./dawg",
+    "test":     "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mattijs/dawg.git"
+  "bin": {
+    "dawg": "./dawg"
   },
-  "keywords": [
-    "documentation",
-    "markdown"
-  ],
-  "author": "Mattijs Hoitink <mattijs@monkeyandmachine.com>",
-  "license": "Unlicense",
   "readmeFilename": "README.md"
 }

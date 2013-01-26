@@ -3,7 +3,7 @@
 _dawg_ is a commandline tool that is meant to as simple as possible to use and get started with.
 Therefor the command can be run without any parameters:
 
-```bash
+```
 $ dawg
 15:12:34 - info   - dawg listening on http://127.0.0.1:5678
 ```
@@ -139,6 +139,30 @@ Run _dawg_ in development mode. This will show debug logging and disable interna
 
 Do not show any logging output, even in development mode.
 
-## Configuration
+## Configuration file
 
-ToDo
+Any option that can be set on the commandline can also be set through a configuration file. The
+configuration file that should be loaded can be configured with the `--config` option. As a default
+dawg will search for a `.dawg` file in the current working directory.
+
+A configuration file contains a simple json object that lists each option with it's value. It uses
+generic json values so options that require a value are configured as strings and options that
+can be switched convert to booleans. Short options are not supported, each option must be the
+full name.
+
+A customized configuration file for _dawg_ might look like this:
+
+```json
+{
+  "source": "./documentation",
+  "output": "./build",
+  "serve":  true,
+  "watch":  true
+}
+```
+
+The above configuration is equal to this command:
+
+```
+$ dawg --source ./documentation --output ./build --serve --watch
+```

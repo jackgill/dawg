@@ -27,7 +27,7 @@ For more usage information see [the usage chapter](02-usage.md).
 ## Goals
 
 The main goal is to be a **simple** tool for view your markdown documentation, either while you
-write it or when presenting it to others. It should be **customizable** to fit specific situations
+are writing or when presenting it to others. It should be **customizable** to fit specific situations
 but stay **interchangeable** with other systems and tools.
 
 First of all _dawg_ should be dead **simple** to use and to get started with. It uses sensible

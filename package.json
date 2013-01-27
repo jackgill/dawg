@@ -16,6 +16,7 @@
     "url":  "git://github.com/mattijs/dawg.git"
   },
   "dependencies": {
+    "lodash":       "~1",
     "clean-css":    "~0.9.1",
     "collections":  "~0.1.5",
     "highlight.js": "~7.3.0",

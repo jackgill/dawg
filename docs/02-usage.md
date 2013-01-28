@@ -1,6 +1,6 @@
 # Usage
 
-_dawg_ is a commandline tool that is meant to as simple as possible to use and get started with.
+dawg is a commandline tool that is meant to as simple as possible to use and get started with.
 Therefor the command can be run without any parameters:
 
 ```
@@ -8,12 +8,12 @@ $ dawg
 15:12:34 - info   - dawg listening on http://127.0.0.1:5678
 ```
 
-The defaults that _dawg_ uses will look for a `docs` directory in your current working directory
+The defaults that `dawg` uses will look for a `docs` directory in your current working directory
 (where you executed the command) and serve the markdown files from that directory through a webserver
 on [locahost:5678](http://localhost:5678). When the `docs` directory can't be found an error will
 be shown.
 
-The behaviour of _dawg_ can be changed by supplying options on the commandline. The options are
+The behaviour of `dawg` can be changed by supplying options on the commandline. The options are
 explained below.
 
 ## Installation
@@ -25,7 +25,7 @@ itself can be installed through [NPM](http://npmjs.org), which comes with Node.j
 $ npm install -g dawg
 ```
 
-The `-g` flag will install _dawg_ globally so it's command is available system wide.
+The `-g` flag will install dawg globally so it's command is available system wide.
 
 ## Options
 
@@ -131,7 +131,7 @@ The host the webserver should bind to.
 
 > default: off
 
-Run _dawg_ in development mode. This will show debug logging and disable internal caching.
+Run `dawg` in development mode. This will show debug logging and disable internal caching.
 
 ### quiet
 
@@ -143,14 +143,14 @@ Do not show any logging output, even in development mode.
 
 Any option that can be set on the commandline can also be set through a configuration file. The
 configuration file that should be loaded can be configured with the `--config` option. As a default
-dawg will search for a `.dawg` file in the current working directory.
+`dawg` will search for a `.dawg` file in the current working directory.
 
 A configuration file contains a simple json object that lists each option with it's value. It uses
 generic json values so options that require a value are configured as strings and options that
 can be switched convert to booleans. Short options are not supported, each option must be listed
 with their full name.
 
-A customized configuration file for _dawg_ might look like this:
+A customized configuration file for `dawg` might look like this:
 
 ```json
 {
@@ -167,4 +167,4 @@ The above configuration is equal to this command:
 $ dawg --source ./documentation --output ./build --serve --watch
 ```
 
-Configuration files are a feature of the dawg cli, it is not part of dawg's core functionality.
+Configuration files are a feature of the `dawg` cli, it is not part of dawg's core functionality.

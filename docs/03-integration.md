@@ -26,7 +26,7 @@ This will make links between chapter work with dawg and they will work fine on G
 
 ## Adding a .dawg file
 
-Too make it easier to view documentation for a project that uses `dawg` a `.dawg` file can be added to the project.
+Too make it easier to view documentation for a project that uses dawg a `.dawg` file can be added to the project.
 This file is automatically detected by dawg when run from the directory the `.dawg` file is in.
 
 The `.dawg` file can be used to set up project specific parameters for dawg and uses the same parameter
@@ -46,7 +46,7 @@ For more information on the configuration file see the [usage chapter](02-usage.
 
 ## Usage through NPM
 
-_dawg_ can be set up to run through NPM. This can be done by adding it to the `scripts` list in the
+dawg can be set up to run through NPM. This can be done by adding it to the `scripts` list in the
 `package.json` file of a node.js project.
 
 A sample `package.json` for _myproject_ might look like this:
@@ -67,4 +67,4 @@ The documentation can now be run with the `npm run docs` command from the root o
 
 If the documentation needs specific configuration the cli options can be appended to the command.
 An alternative is to add a `.dawg` file to your project. This file will be automatically detected
-by _dawg_ when run through NPM (or from the projects root).
+by dawg when run through NPM (or from the projects root).

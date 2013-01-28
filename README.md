@@ -34,7 +34,7 @@ $ ls ./docs
 
 When dawg is run on this directory the files get served on http://localhost:5678.
 
-For a complete overview of the available options and how to use them see the [usage chapter](docs/02-usage.md).
+For a complete overview of the available options and how to use them see the [usage chapter](./docs/02-usage.md).
 
 ## Development
 

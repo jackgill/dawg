@@ -90,6 +90,14 @@ I'm usually in #node.js on freenode under mattijs. O, and I'm in GMT +1, online 
 
 # Changelog
 
+_v0.1.0_
+
+- new cli options
+- file watching
+- documentation
+- code separated in modules
+- better logging
+
 _v0.0.1_ (prototype)
 
 - cli interface

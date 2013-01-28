@@ -1,6 +1,6 @@
 {
   "name":        "dawg",
-  "version":     "0.0.1",
+  "version":     "0.1.0",
   "description": "Documentation and whatnot generator",
   "author":      "Mattijs Hoitink <mattijs@monkeyandmachine.com>",
   "license":     "Unlicense",

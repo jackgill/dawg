@@ -147,8 +147,8 @@ dawg will search for a `.dawg` file in the current working directory.
 
 A configuration file contains a simple json object that lists each option with it's value. It uses
 generic json values so options that require a value are configured as strings and options that
-can be switched convert to booleans. Short options are not supported, each option must be the
-full name.
+can be switched convert to booleans. Short options are not supported, each option must be listed
+with their full name.
 
 A customized configuration file for _dawg_ might look like this:
 
@@ -166,3 +166,5 @@ The above configuration is equal to this command:
 ```
 $ dawg --source ./documentation --output ./build --serve --watch
 ```
+
+Configuration files are a feature of the dawg cli, it is not part of dawg's core functionality.

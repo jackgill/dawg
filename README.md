@@ -7,7 +7,7 @@ dawg is easy to use and integrate into your project an will not get in your way.
 plain markdown and GitHub flavored markdown, and it compatible with documentation stored in a
 GitHub repository.
 
-For more information see the [introduction chapter](docs/01-introduction.md).
+For more information see the [introduction chapter](https://github.com/mattijs/dawg/blob/master/docs/01-introduction.md).
 
 ## Install
 
@@ -34,7 +34,7 @@ $ ls ./docs
 
 When dawg is run on this directory the files get served on http://localhost:5678.
 
-For a complete overview of the available options and how to use them see the [usage chapter](./docs/02-usage.md).
+For a complete overview of the available options and how to use them see the [usage chapter](https://github.com/mattijs/dawg/blob/master/docs/02-usage.md).
 
 ## Development
 

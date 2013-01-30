@@ -44,6 +44,39 @@ An example of a `.dawg` file would look something like this:
 
 For more information on the configuration file see the [usage chapter](02-usage.md#configuration-file).
 
+## Using grunt-dawg
+
+[grunt-dawg](https://github.com/mattijs/grunt-dawg) is a [grunt](http://gruntjs.com) plugin that allows
+you to call dawg from a gruntfile. grunt-dawg can be easilly installed for your node project by running
+`npm install grunt-dawg` from the project root (containing the package.json file).
+
+Configuration for calling dawg can be added to your gruntfile under `grunt.initConfig`:
+
+```javascript
+module.exports = function(grunt) {
+    // Load the dawg grunt task
+    grunt.loadNpmTask('grunt-dawg');
+
+    // Configure the dawg task with a build target
+    grunt.initConfig({
+        "dawg": {
+            "build": {
+                "options": {
+                    "output": "./build/docs"
+                }
+            }
+        }
+    });
+};
+```
+
+grunt-dawg supports multiple targets to enable different configurations. It would be easy to add a
+target to the above configuration for serving the documentation locally. Any option that is 
+supported by dawg can be set through `grunt.initConfig`.
+
+For more documentation on integrating dawg with grunt see the [grunt-dawg](https://github.com/mattijs/grunt-dawg)
+project.
+
 ## Usage through NPM
 
 dawg can be set up to run through NPM. This can be done by adding it to the `scripts` list in the

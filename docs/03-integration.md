@@ -16,7 +16,7 @@ compatible with plain markdown.
 
 ## Using GitHub?
 
-Since GitHub supports markdown files it's now wonder you can read the same files
+Since GitHub supports markdown files it's no wonder you can read the same files
 that dawg parses right from your [GitHub repository](https://github.com/mattijs/dawg/tree/master/docs).
 dawg supports [GitHub Flavored Markdown](http://github.github.com/github-flavored-markdown/) so if
 your project is on GitHub this additional markdown syntax will work there too.
